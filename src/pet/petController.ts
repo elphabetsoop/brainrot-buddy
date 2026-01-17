@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { PetViewProvider, PetState } from './PetViewProvider';
+import { PetViewProvider, PetState } from './petViewProvider';
 
 let petViewProvider: PetViewProvider | undefined;
 
