@@ -149,6 +149,8 @@ export class SuccessPopupPanel {
 		<img src="${snorlaxPath}" alt="Success" class="image">
 	</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+
 	<script>
 		const vscode = acquireVsCodeApi();
 
@@ -159,6 +161,10 @@ export class SuccessPopupPanel {
 			});
 		}, 3000);
 	</script>
+    <script>
+        const jsConfetti = new JSConfetti();
+        jsConfetti.addConfetti();
+    </script>
 </body>
 </html>`;
 	}
