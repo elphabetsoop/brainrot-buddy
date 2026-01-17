@@ -9,15 +9,39 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "brainrot-buddy.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "brainrot-buddy.showPet",
+        "title": "Brainrot Buddy: Show Pet"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "brainrotBuddyContainer",
+          "title": "Brainrot Buddy",
+          "icon": "$(heart)"
+        }
+      ]
+    },
+    "views": {
+      "brainrotBuddyContainer": [
+        {
+          "type": "webview",
+          "id": "brainrotBuddy.petView",
+          "name": "Brainrot Buddy"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
