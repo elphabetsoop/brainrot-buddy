@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { PetViewProvider, PetState } from './PetViewProvider';
-import { SuccessPopupPanel } from './SuccessPopupPanel';
+import { PetViewProvider, PetState } from './petViewProvider';
+import { SuccessPopupPanel } from './successPopupPanel';
 
 let petViewProvider: PetViewProvider | undefined;
 let extensionUri: vscode.Uri;
