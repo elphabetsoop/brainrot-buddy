@@ -16,30 +16,25 @@ export function setupLongFunctionListener(context: vscode.ExtensionContext) {
         const doc = activeEditor.document;
         const text = doc.getText();
 
-        // Enhanced regex to catch so far documented:
-        // - Regular functions: function foo() {}
-        // - Arrow functions: const foo = () => {}
-        // - Arrow functions: const foo = async () => {}
-        // - Methods: foo() {}
-        // - Export functions: export function foo() {}
-        // - Export arrow: export const foo = () => {}
+        // Enhanced regex patterns
         const functionPatterns = [
             // Standard function declarations
             /(?:export\s+)?(?:async\s+)?function\s+\w+\s*\([^)]*\)\s*(?::\s*[^{]+)?\s*\{/g,
             // Arrow functions with const/let/var
-            /(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?\([^)]*\)\s*(?::\s*[^{=]+)?(?:=>)\s*\{/g,
-            // Class methods
-            /(?:public|private|protected|static|\s)*\s*\w+\s*\([^)]*\)\s*(?::\s*[^{]+)?\s*\{/g,
+            /(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?\([^)]*\)\s*(?::\s*[^{=]+)?=>\s*\{/g,
+            // Class methods (more specific to avoid false positives)
+            /(?:public|private|protected|static|\s)+(?:async\s+)?\w+\s*\([^)]*\)\s*(?::\s*[^{]+)?\s*\{/g,
         ];
 
         const functions: { start: number; end: number; lines: number; name: string }[] = [];
 
-        // Check each pattern
-        functionPatterns.forEach(regex => {
+        // Check each pattern - FIX: Create new regex instance each time
+        functionPatterns.forEach(pattern => {
             let match;
-            const patternRegex = new RegExp(regex);
+            // Reset regex by creating new instance
+            const regex = new RegExp(pattern.source, pattern.flags);
 
-            while ((match = patternRegex.exec(text)) !== null) {
+            while ((match = regex.exec(text)) !== null) {
                 const startPos = match.index;
                 const funcStart = text.indexOf('{', startPos);
 
@@ -54,6 +49,16 @@ export function setupLongFunctionListener(context: vscode.ExtensionContext) {
                 let i = funcStart + 1;
 
                 while (i < text.length && braceCount > 0) {
+                    // Skip string literals to avoid counting braces in strings
+                    if (text[i] === '"' || text[i] === "'" || text[i] === '`') {
+                        const quote = text[i];
+                        i++;
+                        while (i < text.length && text[i] !== quote) {
+                            if (text[i] === '\\') i++; // Skip escaped characters
+                            i++;
+                        }
+                    }
+                    
                     if (text[i] === '{') braceCount++;
                     if (text[i] === '}') braceCount--;
                     i++;
@@ -103,9 +108,10 @@ export function setupLongFunctionListener(context: vscode.ExtensionContext) {
             setTimeout(() => {
                 setPetState('idle');
             }, 3000);
+
             // Log for debugging
-            // console.log(`[Brainrot Buddy] Found ${longFunctions.length} long function(s):`, 
-            //     longFunctions.map(f => `${f.name} (${f.lines} lines)`));
+            console.log(`[Brainrot Buddy] Found ${longFunctions.length} long function(s):`, 
+                longFunctions.map(f => `${f.name} (${f.lines} lines)`));
         }
     }
 
