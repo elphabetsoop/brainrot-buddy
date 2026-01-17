@@ -329,7 +329,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			z-index: 100;
+			z-index: 2000;
 		}
 
 		.pet {
@@ -431,7 +431,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 	<div class="status-bar" id="statusBar">
 		Bibble is <span class="feeling idle" id="feelingText">bingchilling</span>
 	</div>
-	<div class="meme-counter" id="memeCounter">Click Bibble for memes! (20 left)</div>
+	<div class="meme-counter" id="memeCounter">Pet Bibble to start scrolling!</div>
 	<div class="pet-wrapper" id="petWrapper">
 		<div class="chat-bubble" id="chatBubble"></div>
 		<img src="${idlePath}" alt="Bibble" class="pet" id="petImage">
@@ -447,9 +447,9 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 
 	<!-- Lock overlay -->
 	<div class="lock-overlay" id="lockOverlay">
-		<div class="lock-timer" id="lockTimer">20:00</div>
-		<div class="lock-message">🍅 Pomodoro Time!</div>
-		<div class="lock-submessage">lock in neow!!</div>
+		<div class="lock-timer" id="lockTimer">25:00</div>
+		<div class="lock-message">lock in time 🍅</div>
+		<div class="lock-submessage">lock in neow!!!</div>
 	</div>
 
 	<script>
@@ -628,9 +628,9 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		// Update meme counter display
 		function updateMemeCounter(remaining) {
 			if (remaining <= 0) {
-				memeCounter.textContent = 'Time to work! 🍅';
+				memeCounter.textContent = 'time to lock in! 🍅';
 			} else {
-				memeCounter.textContent = 'Click Bibble for memes! (' + remaining + ' left)';
+				memeCounter.textContent = 'Pet Bibble for memes! (' + remaining + ' left)';
 			}
 		}
 
