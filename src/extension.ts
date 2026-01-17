@@ -1,7 +1,5 @@
 // The module 'vscode' contains the VS Code extensibility API
 import * as vscode from 'vscode';
-import { GitCommitResult } from './gitHandler/type';
-import { GitHandler } from './gitHandler/gitHandler';
 
 type PetState = 'idle' | 'error' | 'success';
 
@@ -10,7 +8,7 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 	private _view?: vscode.WebviewView;
 	private _currentState: PetState = 'idle';
 
-	constructor(private readonly _extensionUri: vscode.Uri) { }
+	constructor(private readonly _extensionUri: vscode.Uri) {}
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -30,18 +28,18 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 	public setState(state: PetState, message?: string) {
 		this._currentState = state;
 		if (this._view) {
-			this._view.webview.postMessage({
-				type: 'stateChange',
+			this._view.webview.postMessage({ 
+				type: 'stateChange', 
 				state: state,
-				message: message
+				message: message 
 			});
 		}
 	}
 
 	public showChatBubble(message: string, duration: number = 5000) {
 		if (this._view) {
-			this._view.webview.postMessage({
-				type: 'chatBubble',
+			this._view.webview.postMessage({ 
+				type: 'chatBubble', 
 				message: message,
 				duration: duration
 			});
@@ -378,10 +376,10 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				// Check if there are any errors anywhere in the workspace
 				const allDiagnostics = vscode.languages.getDiagnostics();
-				const anyErrors = allDiagnostics.some(([_, diags]) =>
+				const anyErrors = allDiagnostics.some(([_, diags]) => 
 					diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
 				);
-
+				
 				if (!anyErrors) {
 					petViewProvider.setState('idle');
 				}
@@ -389,23 +387,70 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
-	// Git Handler
-	const gitHandler = new GitHandler((result: GitCommitResult) => {
-		switch (result.type) {
-			case 'success':
-				petViewProvider.setState('success', result.message);
-				petViewProvider.showChatBubble(result.message);
-				break;
+	// Listen for git commits
+	setupGitCommitListener(context);
+}
 
-			case 'error':
-				petViewProvider.setState('error', result.message);
-				petViewProvider.showChatBubble(result.message);
-				break;
+async function setupGitCommitListener(context: vscode.ExtensionContext) {
+	// Wait for git extension to be available
+	const gitExtension = vscode.extensions.getExtension('vscode.git');
+	if (!gitExtension) {
+		console.log('Git extension not found');
+		return;
+	}
+
+	// Wait for git extension to activate
+	let gitApi;
+	try {
+		const exports = gitExtension.isActive ? gitExtension.exports : await gitExtension.activate();
+		gitApi = exports.getAPI(1);
+	} catch (e) {
+		console.log('Failed to activate git extension:', e);
+		return;
+	}
+
+	if (!gitApi) {
+		return;
+	}
+
+	const git = gitApi;
+	let lastHeadCommit: string | undefined;
+
+	function checkForCommit(repo: any) {
+		const currentHead = repo.state.HEAD?.commit;
+		
+		if (currentHead && lastHeadCommit && currentHead !== lastHeadCommit) {
+			// HEAD changed - new commit!
+			petViewProvider.setState('success', 'Great commit! 🎉');
+			
+			// Return to appropriate state after celebration
+			setTimeout(() => {
+				const allDiagnostics = vscode.languages.getDiagnostics();
+				const anyErrors = allDiagnostics.some(([_, diags]) => 
+					diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
+				);
+				
+				if (anyErrors) {
+					petViewProvider.setState('error');
+				} else {
+					petViewProvider.setState('idle');
+				}
+			}, 5000);
 		}
-	});
+		
+		lastHeadCommit = currentHead;
+	}
 
-	gitHandler.init(context);
+	// Watch existing repositories
+	for (const repo of git.repositories) {
+		repo.state.onDidChange(() => checkForCommit(repo));
+	}
+
+	// Watch for new repositories
+	git.onDidOpenRepository((repo: any) => {
+		repo.state.onDidChange(() => checkForCommit(repo));
+	});
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() { }
+export function deactivate() {}
