@@ -1,14 +1,24 @@
 import * as vscode from 'vscode';
 import { actions, errorMessageTiers, successMessages, getErrorMessageForCount } from '../states/stateManager';
+import { memeManager, Meme } from '../memes/memeManager';
 
-export type PetState = 'idle' | 'error' | 'success' | 'lengthyWarning';
+export type PetState = 'idle' | 'error' | 'success' | 'lengthyWarning' | 'locked';
 
 export class PetViewProvider implements vscode.WebviewViewProvider {
 	public static readonly viewType = 'brainrotBuddy.petView';
 	private _view?: vscode.WebviewView;
 	private _currentState: PetState = 'idle';
+	private _lockTimerInterval?: NodeJS.Timeout;
 
-	constructor(private readonly _extensionUri: vscode.Uri) { }
+	constructor(private readonly _extensionUri: vscode.Uri) {
+		memeManager.setOnLock((remainingMs) => {
+			this.showLockState(remainingMs);
+		});
+
+		memeManager.setOnUnlock(() => {
+			this.hideLockState();
+		});
+	}
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -23,6 +33,78 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		};
 
 		webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+		// Handle messages from the webview
+		webviewView.webview.onDidReceiveMessage(async (message) => {
+			if (message.type === 'petClicked') {
+				await this.handlePetClick();
+			}
+		});
+	}
+
+	private async handlePetClick(): Promise<void> {
+		if (memeManager.isCurrentlyLocked()) {
+			const remainingMs = memeManager.getRemainingLockTime();
+			this.showLockState(remainingMs);
+			return;
+		}
+
+		const meme = await memeManager.requestMeme();
+		if (meme) {
+			this.showMeme(meme);
+		}
+	}
+
+	public showMeme(meme: Meme): void {
+		const remaining = memeManager.getMemesRemaining();
+		if (this._view) {
+			this._view.webview.postMessage({
+				type: 'showMeme',
+				meme: meme,
+				memesRemaining: remaining
+			});
+		}
+	}
+
+	public showLockState(remainingMs: number): void {
+		this._currentState = 'locked';
+		if (this._view) {
+			this._view.webview.postMessage({
+				type: 'lockState',
+				remainingMs: remainingMs
+			});
+		}
+
+		// Start updating the timer
+		if (this._lockTimerInterval) {
+			clearInterval(this._lockTimerInterval);
+		}
+
+		this._lockTimerInterval = setInterval(() => {
+			const remaining = memeManager.getRemainingLockTime();
+			if (remaining <= 0) {
+				this.hideLockState();
+			} else if (this._view) {
+				this._view.webview.postMessage({
+					type: 'lockState',
+					remainingMs: remaining
+				});
+			}
+		}, 1000);
+	}
+
+	public hideLockState(): void {
+		if (this._lockTimerInterval) {
+			clearInterval(this._lockTimerInterval);
+			this._lockTimerInterval = undefined;
+		}
+
+		this._currentState = 'idle';
+		if (this._view) {
+			this._view.webview.postMessage({
+				type: 'unlockState'
+			});
+		}
 	}
 
 	public setState(state: PetState, message?: string) {
@@ -129,6 +211,117 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			color: #2196f3;
 		}
 
+		.status-bar .feeling.locked {
+			color: #ff9800;
+		}
+
+		.meme-counter {
+			position: absolute;
+			top: 35px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 10px;
+			color: #666666;
+			text-align: center;
+			padding: 3px 8px;
+			background: rgba(30, 30, 30, 0.6);
+			border-radius: 8px;
+		}
+
+		.meme-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: calc(100% - 80px);
+			background: rgba(0, 0, 0, 0.85);
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 50;
+			padding: 10px;
+			pointer-events: none;
+		}
+
+		.meme-overlay.visible {
+			display: flex;
+		}
+
+		.meme-image {
+			max-width: 100%;
+			max-height: 70%;
+			object-fit: contain;
+			border-radius: 8px;
+		}
+
+		.meme-title {
+			color: #ffffff;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 12px;
+			text-align: center;
+			margin-top: 10px;
+			max-width: 90%;
+			word-wrap: break-word;
+		}
+
+		.meme-info {
+			color: #888888;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 10px;
+			margin-top: 5px;
+		}
+
+		.meme-close-hint {
+			color: #666666;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 10px;
+			margin-top: 15px;
+		}
+
+		.lock-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(20, 20, 20, 0.95);
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 1001;
+		}
+
+		.lock-overlay.visible {
+			display: flex;
+		}
+
+		.lock-timer {
+			font-family: 'Courier New', monospace;
+			font-size: 48px;
+			color: #ff9800;
+			font-weight: bold;
+		}
+
+		.lock-message {
+			color: #ffffff;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 14px;
+			text-align: center;
+			margin-top: 15px;
+			max-width: 80%;
+		}
+
+		.lock-submessage {
+			color: #888888;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 11px;
+			text-align: center;
+			margin-top: 8px;
+		}
+
 		.pet-wrapper {
 			position: absolute;
 			bottom: 0;
@@ -136,6 +329,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
+			z-index: 100;
 		}
 
 		.pet {
@@ -237,9 +431,25 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 	<div class="status-bar" id="statusBar">
 		Bibble is <span class="feeling idle" id="feelingText">bingchilling</span>
 	</div>
+	<div class="meme-counter" id="memeCounter">Click Bibble for memes! (20 left)</div>
 	<div class="pet-wrapper" id="petWrapper">
 		<div class="chat-bubble" id="chatBubble"></div>
 		<img src="${idlePath}" alt="Bibble" class="pet" id="petImage">
+	</div>
+
+	<!-- Meme overlay -->
+	<div class="meme-overlay" id="memeOverlay">
+		<img class="meme-image" id="memeImage" src="" alt="Meme">
+		<div class="meme-title" id="memeTitle"></div>
+		<div class="meme-info" id="memeInfo"></div>
+		<div class="meme-close-hint">Click Bibble for next meme!</div>
+	</div>
+
+	<!-- Lock overlay -->
+	<div class="lock-overlay" id="lockOverlay">
+		<div class="lock-timer" id="lockTimer">20:00</div>
+		<div class="lock-message">🍅 Pomodoro Time!</div>
+		<div class="lock-submessage">lock in neow!!</div>
 	</div>
 
 	<script>
@@ -249,6 +459,13 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		const chatBubble = document.getElementById('chatBubble');
 		const statusBar = document.getElementById('statusBar');
 		const feelingText = document.getElementById('feelingText');
+		const memeOverlay = document.getElementById('memeOverlay');
+		const memeImage = document.getElementById('memeImage');
+		const memeTitle = document.getElementById('memeTitle');
+		const memeInfo = document.getElementById('memeInfo');
+		const memeCounter = document.getElementById('memeCounter');
+		const lockOverlay = document.getElementById('lockOverlay');
+		const lockTimer = document.getElementById('lockTimer');
 
 		const images = {
 			idle: '${idlePath}',
@@ -272,7 +489,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		let isWalking = true;
 		let isPaused = false;
 		let isError = false;
-		const speed = 0.3; // Speed of walking
+		const speed = 0.1; // Speed of walking
 
 		// Get error message based on count
 		function getErrorMessageForCount(errorCount) {
@@ -387,13 +604,35 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			isPaused = false;
 		});
 
-		// Click to make pet jump
+		// Click to make pet jump and request meme
 		petImage.addEventListener('click', () => {
 			petImage.classList.add('jumping');
 			setTimeout(() => {
 				petImage.classList.remove('jumping');
 			}, 200);
+			
+			// Request a meme from the extension
+			vscode.postMessage({ type: 'petClicked' });
 		});
+
+		// Meme overlay is non-interactive, clicks pass through to Bibble
+
+		// Format time from milliseconds to MM:SS
+		function formatTime(ms) {
+			const totalSeconds = Math.ceil(ms / 1000);
+			const minutes = Math.floor(totalSeconds / 60);
+			const seconds = totalSeconds % 60;
+			return minutes + ':' + seconds.toString().padStart(2, '0');
+		}
+
+		// Update meme counter display
+		function updateMemeCounter(remaining) {
+			if (remaining <= 0) {
+				memeCounter.textContent = 'Time to work! 🍅';
+			} else {
+				memeCounter.textContent = 'Click Bibble for memes! (' + remaining + ' left)';
+			}
+		}
 
 		// Listen for messages from extension
 		window.addEventListener('message', event => {
@@ -444,6 +683,32 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 
 				case 'chatBubble':
 					showChatBubble(message.message, message.duration);
+					break;
+
+				case 'showMeme':
+					// Display the meme in the overlay
+					memeImage.src = message.meme.url;
+					memeTitle.textContent = message.meme.title;
+					memeInfo.textContent = 'r/' + message.meme.subreddit + ' • ' + message.meme.ups + ' upvotes';
+					memeOverlay.classList.add('visible');
+					updateMemeCounter(message.memesRemaining);
+					break;
+
+				case 'lockState':
+					// Show the lock overlay with timer
+					lockOverlay.classList.add('visible');
+					lockTimer.textContent = formatTime(message.remainingMs);
+					feelingText.textContent = 'focusing';
+					feelingText.className = 'feeling locked';
+					updateMemeCounter(0);
+					break;
+
+				case 'unlockState':
+					// Hide the lock overlay
+					lockOverlay.classList.remove('visible');
+					feelingText.textContent = actions.idle;
+					feelingText.className = 'feeling idle';
+					updateMemeCounter(20);
 					break;
 			}
 		});
