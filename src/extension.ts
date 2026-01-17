@@ -73,6 +73,38 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			position: relative;
 		}
 
+		.status-bar {
+			position: absolute;
+			top: 10px;
+			left: 50%;
+			transform: translateX(-50%);
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+			font-size: 12px;
+			color: #888888;
+			text-align: center;
+			padding: 6px 12px;
+			background: rgba(30, 30, 30, 0.8);
+			border-radius: 12px;
+			white-space: nowrap;
+		}
+
+		.status-bar .feeling {
+			color: #4caf50;
+			font-weight: 500;
+		}
+
+		.status-bar .feeling.error {
+			color: #f44336;
+		}
+
+		.status-bar .feeling.success {
+			color: #4caf50;
+		}
+
+		.status-bar .feeling.idle {
+			color: #2196f3;
+		}
+
 		.pet-wrapper {
 			position: absolute;
 			bottom: 0;
@@ -80,7 +112,6 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			transition: transform 0.1s linear;
 		}
 
 		.pet {
@@ -89,19 +120,10 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			object-fit: contain;
 			filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 			cursor: pointer;
-			transition: transform 0.2s ease;
-		}
-
-		.pet:hover {
-			transform: scale(1.1);
 		}
 
 		.pet.flipped {
 			transform: scaleX(-1);
-		}
-
-		.pet:hover.flipped {
-			transform: scaleX(-1) scale(1.1);
 		}
 
 		.chat-bubble {
@@ -115,7 +137,7 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			border-radius: 12px;
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 			font-size: 12px;
-			max-width: 150px;
+			max-width: 180px;
 			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 			opacity: 0;
 			transition: opacity 0.3s ease, transform 0.3s ease;
@@ -156,46 +178,41 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			opacity: 1;
 		}
 
-		.state-dot {
-			position: absolute;
-			bottom: 5px;
-			right: 5px;
-			width: 8px;
-			height: 8px;
-			border-radius: 50%;
-			background: #2196f3;
-			box-shadow: 0 0 6px rgba(33, 150, 243, 0.5);
+
+		@keyframes jump {
+			0%, 100% { transform: translateY(0); }
+			50% { transform: translateY(-20px); }
 		}
 
-		.state-dot.error {
-			background: #f44336;
-			box-shadow: 0 0 6px rgba(244, 67, 54, 0.5);
-		}
-
-		.state-dot.success {
-			background: #4caf50;
-			box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
-		}
-
-		.state-dot.idle {
-			background: #2196f3;
-			box-shadow: 0 0 6px rgba(33, 150, 243, 0.5);
+		@keyframes jumpFlipped {
+			0%, 100% { transform: scaleX(-1) translateY(0); }
+			50% { transform: scaleX(-1) translateY(-20px); }
 		}
 
 		.walking .pet {
-			animation:  0.3s ease-in-out infinite;
+			animation: 0.3s ease-in-out infinite;
 		}
 
 		.walking .pet.flipped {
-			animation:  0.3s ease-in-out infinite;
+			animation: 0.3s ease-in-out infinite;
+		}
+
+		.pet.jumping {
+			animation: jump 0.2s ease-out;
+		}
+
+		.pet.jumping.flipped {
+			animation: jumpFlipped 0.2s ease-out;
 		}
 	</style>
 </head>
 <body>
+	<div class="status-bar" id="statusBar">
+		Bibble is <span class="feeling idle" id="feelingText">bingchilling</span>
+	</div>
 	<div class="pet-wrapper" id="petWrapper">
 		<div class="chat-bubble" id="chatBubble"></div>
 		<img src="${idlePath}" alt="Bibble" class="pet" id="petImage">
-		<div class="state-dot idle" id="stateDot"></div>
 	</div>
 
 	<script>
@@ -203,7 +220,8 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 		const petWrapper = document.getElementById('petWrapper');
 		const petImage = document.getElementById('petImage');
 		const chatBubble = document.getElementById('chatBubble');
-		const stateDot = document.getElementById('stateDot');
+		const statusBar = document.getElementById('statusBar');
+		const feelingText = document.getElementById('feelingText');
 
 		const images = {
 			idle: '${idlePath}',
@@ -211,11 +229,30 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			success: '${successPath}'
 		};
 
+		const errorMessages = [
+			"eh why got error sia",
+			"knn gt error",
+			"cb got bug",
+			"oi error lah help",
+		];
+
+		const successMessages = [
+			"FIRE COMMIT",
+			"YES LAHHHH",
+		];
+
+		const actions = {
+			idle: "bingchilling",
+			error: "crashing out",
+			success: "says FIREEEE"
+		};
+
 		let chatBubbleTimeout = null;
 		let position = 50; // Start in middle (percentage)
 		let direction = 1; // 1 = right, -1 = left
 		let isWalking = true;
 		let isPaused = false;
+		let isError = false;
 		const speed = 0.3; // Speed of walking
 
 		// Initialize position
@@ -223,7 +260,7 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 
 		// Walking animation loop
 		function walk() {
-			if (!isPaused && isWalking) {
+			if (!isPaused && isWalking && !isError) {
 				position += speed * direction;
 
 				// Bounce off edges
@@ -249,6 +286,12 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			petWrapper.style.transform = 'translateX(-50%)';
 		}
 
+		function moveToCenter() {
+			position = 50;
+			updatePosition();
+			petImage.classList.remove('flipped');
+		}
+
 		// Start walking
 		walk();
 
@@ -263,13 +306,9 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 
 		// Click to make pet jump
 		petImage.addEventListener('click', () => {
-			petImage.style.transform = petImage.classList.contains('flipped') 
-				? 'scaleX(-1) translateY(-20px)' 
-				: 'translateY(-20px)';
+			petImage.classList.add('jumping');
 			setTimeout(() => {
-				petImage.style.transform = petImage.classList.contains('flipped') 
-					? 'scaleX(-1)' 
-					: '';
+				petImage.classList.remove('jumping');
 			}, 200);
 		});
 
@@ -282,18 +321,27 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 					// Update pet image based on state
 					petImage.src = images[message.state] || images.idle;
 					
-					// Update state indicator
-					stateDot.className = 'state-dot ' + message.state;
-					
-					// Show message in chat bubble if provided
-					if (message.message) {
-						showChatBubble(message.message);
-					}
+					// Update feeling text
+					feelingText.textContent = actions[message.state] || actions.idle;
+					feelingText.className = 'is ' + message.state;
 
-					// Pause walking briefly on state change
-					if (message.state === 'error' || message.state === 'success') {
+					if (message.state === 'error') {
+						isError = true;
 						isWalking = false;
+						moveToCenter();
+						// Pick random error message
+						const randomError = errorMessages[Math.floor(Math.random() * errorMessages.length)];
+						showChatBubble(randomError, 10000);
+					} else if (message.state === 'success') {
+						isError = false;
+						isWalking = false;
+						// Pick random success message
+						const randomSuccess = successMessages[Math.floor(Math.random() * successMessages.length)];
+						showChatBubble(randomSuccess);
 						setTimeout(() => { isWalking = true; }, 3000);
+					} else {
+						isError = false;
+						isWalking = true;
 					}
 					break;
 
@@ -372,7 +420,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			if (hasErrors) {
-				petViewProvider.setState('error', 'knn gt error wtf');
+				petViewProvider.setState('error');
 			} else {
 				// Check if there are any errors anywhere in the workspace
 				const allDiagnostics = vscode.languages.getDiagnostics();
@@ -420,10 +468,8 @@ async function setupGitCommitListener(context: vscode.ExtensionContext) {
 		const currentHead = repo.state.HEAD?.commit;
 		
 		if (currentHead && lastHeadCommit && currentHead !== lastHeadCommit) {
-			// HEAD changed - new commit!
-			petViewProvider.setState('success', 'Great commit! 🎉');
+			petViewProvider.setState('success');
 			
-			// Return to appropriate state after celebration
 			setTimeout(() => {
 				const allDiagnostics = vscode.languages.getDiagnostics();
 				const anyErrors = allDiagnostics.some(([_, diags]) => 
