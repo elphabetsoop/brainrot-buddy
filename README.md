@@ -1,1 +1,16 @@
 # brainrot-buddy
+
+## Project Structure
+```
+├── .vscode
+│   ├── launch.json     // Config for launching and debugging the extension
+│   └── tasks.json      // Config for build task that compiles TypeScript
+├── .gitignore          // Ignore build output and node_modules
+├── media               // CUSTOM: images
+├── README.md           // Readable description of your extension's functionality
+├── src
+│   └── extension.ts    // Extension source code
+├── package.json        // Extension manifest
+├── tsconfig.json       // TypeScript configuration
+
+```
