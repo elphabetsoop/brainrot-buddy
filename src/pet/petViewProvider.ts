@@ -185,48 +185,93 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			left: 50%;
 			transform: translateX(-50%);
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-			font-size: 12px;
-			color: #888888;
+			font-size: 13px;
+			color: #cccccc;
 			text-align: center;
-			padding: 6px 12px;
-			background: rgba(30, 30, 30, 0.8);
-			border-radius: 12px;
+			padding: 8px 16px;
+			background: linear-gradient(135deg, rgba(40, 40, 50, 0.95), rgba(30, 30, 40, 0.95));
+			border-radius: 16px;
 			white-space: nowrap;
+			z-index: 2001;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
 		}
 
 		.status-bar .feeling {
-			color: #4caf50;
-			font-weight: 500;
-		}
-
-		.status-bar .feeling.error {
-			color: #f44336;
-		}
-
-		.status-bar .feeling.success {
-			color: #4caf50;
+			font-weight: 600;
+			transition: all 0.3s ease;
 		}
 
 		.status-bar .feeling.idle {
-			color: #2196f3;
+			color: #64b5f6;
+			text-shadow: 0 0 8px #64b5f6, 0 0 16px #42a5f5, 0 0 24px #2196f3;
+			animation: pulseBlue 2s ease-in-out infinite;
+		}
+
+		.status-bar .feeling.error {
+			color: #ff5252;
+			text-shadow: 0 0 8px #ff5252, 0 0 16px #f44336, 0 0 24px #d32f2f, 0 0 32px #b71c1c;
+			animation: pulseRed 0.5s ease-in-out infinite;
+		}
+
+		.status-bar .feeling.success {
+			color: #69f0ae;
+			text-shadow: 0 0 8px #69f0ae, 0 0 16px #00e676, 0 0 24px #00c853, 0 0 32px #ffd700;
+			animation: pulseGreen 1s ease-in-out infinite;
+		}
+
+		.status-bar .feeling.lengthyWarning {
+			color: #ffb74d;
+			text-shadow: 0 0 8px #ffb74d, 0 0 16px #ffa726, 0 0 24px #ff9800;
+			animation: pulseOrange 1.5s ease-in-out infinite;
 		}
 
 		.status-bar .feeling.locked {
-			color: #ff9800;
+			opacity: 0.7;
+			filter: grayscale(30%);
+		}
+
+		@keyframes pulseBlue {
+			0%, 100% { text-shadow: 0 0 8px #64b5f6, 0 0 16px #42a5f5, 0 0 24px #2196f3; }
+			50% { text-shadow: 0 0 12px #64b5f6, 0 0 24px #42a5f5, 0 0 36px #2196f3; }
+		}
+
+		@keyframes pulseRed {
+			0%, 100% { text-shadow: 0 0 8px #ff5252, 0 0 16px #f44336, 0 0 24px #d32f2f; }
+			50% { text-shadow: 0 0 16px #ff5252, 0 0 32px #f44336, 0 0 48px #d32f2f; }
+		}
+
+		@keyframes pulseGreen {
+			0%, 100% { text-shadow: 0 0 8px #69f0ae, 0 0 16px #00e676, 0 0 24px #00c853; }
+			50% { text-shadow: 0 0 16px #69f0ae, 0 0 32px #00e676, 0 0 48px #ffd700; }
+		}
+
+		@keyframes pulseOrange {
+			0%, 100% { text-shadow: 0 0 8px #ffb74d, 0 0 16px #ffa726, 0 0 24px #ff9800; }
+			50% { text-shadow: 0 0 12px #ffb74d, 0 0 20px #ffa726, 0 0 32px #ff9800; }
 		}
 
 		.meme-counter {
 			position: absolute;
-			top: 35px;
+			top: 45px;
 			left: 50%;
 			transform: translateX(-50%);
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-			font-size: 10px;
-			color: #666666;
+			font-size: 11px;
+			color: #aaaaaa;
 			text-align: center;
-			padding: 3px 8px;
-			background: rgba(30, 30, 30, 0.6);
-			border-radius: 8px;
+			padding: 6px 12px;
+			background: linear-gradient(135deg, rgba(50, 50, 60, 0.9), rgba(40, 40, 50, 0.9));
+			border-radius: 12px;
+			z-index: 2001;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.08);
+			backdrop-filter: blur(8px);
+			transition: all 0.3s ease;
+		}
+
+		.meme-counter:hover {
+			background: linear-gradient(135deg, rgba(60, 60, 70, 0.95), rgba(50, 50, 60, 0.95));
+			transform: translateX(-50%) scale(1.02);
 		}
 
 		.meme-overlay {
@@ -241,7 +286,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 			align-items: center;
 			justify-content: center;
 			z-index: 50;
-			padding: 10px;
+			padding: 75px 10px 10px 10px;
 			pointer-events: none;
 		}
 
@@ -645,7 +690,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 					
 					// Update feeling text
 					feelingText.textContent = actions[message.state] || actions.idle;
-					feelingText.className = 'is ' + message.state;
+					feelingText.className = 'feeling ' + message.state;
 
 					if (message.state === 'error') {
 						isError = true;
@@ -698,16 +743,16 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 					// Show the lock overlay with timer
 					lockOverlay.classList.add('visible');
 					lockTimer.textContent = formatTime(message.remainingMs);
-					feelingText.textContent = 'focusing';
-					feelingText.className = 'feeling locked';
+					// Add locked class without changing the mood text
+					feelingText.classList.add('locked');
 					updateMemeCounter(0);
 					break;
 
 				case 'unlockState':
 					// Hide the lock overlay
 					lockOverlay.classList.remove('visible');
-					feelingText.textContent = actions.idle;
-					feelingText.className = 'feeling idle';
+					// Remove locked class without changing the mood text
+					feelingText.classList.remove('locked');
 					updateMemeCounter(20);
 					break;
 			}
