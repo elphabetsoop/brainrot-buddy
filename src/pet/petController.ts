@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
 import { PetViewProvider, PetState } from './PetViewProvider';
+import { SuccessPopupPanel } from './SuccessPopupPanel';
 
 let petViewProvider: PetViewProvider | undefined;
+let extensionUri: vscode.Uri;
 
 export function initializePetController(context: vscode.ExtensionContext): PetViewProvider {
 	petViewProvider = new PetViewProvider(context.extensionUri);
+	extensionUri = context.extensionUri;
 
 	// Register the webview view provider
 	context.subscriptions.push(
@@ -41,6 +44,11 @@ export function getPetViewProvider(): PetViewProvider | undefined {
 
 export function setPetState(state: PetState, message?: string): void {
 	petViewProvider?.setState(state, message);
+	
+	// Show success popup when state is success
+	if (state === 'success') {
+		SuccessPopupPanel.createOrShow(extensionUri);
+	}
 }
 
 export function showChatBubble(message: string, duration?: number): void {
