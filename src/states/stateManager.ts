@@ -1,8 +1,9 @@
-export const errorMessages = [
-	"eh why got error sia",
-	"knn gt error",
-	"cb got bug",
-	"oi error lah help",
+export const errorMessageTiers = [
+	{ threshold: 1, message: "oops got error leh" },
+	{ threshold: 2, message: "eh why got errors sia" },
+	{ threshold: 3, message: "knn WHY GOT MISTAKES" },
+	{ threshold: 4, message: "cbbbb why sm errors wtf" },
+	{ threshold: 5, message: "BRO WTF R U DOING" },
 ];
 
 export const successMessages = [
@@ -16,8 +17,14 @@ export const actions: Record<string, string> = {
 	success: "says FIREEEE"
 };
 
-export function getRandomErrorMessage(): string {
-	return errorMessages[Math.floor(Math.random() * errorMessages.length)];
+export function getErrorMessageForCount(errorCount: number): string {
+	let message = errorMessageTiers[0].message;
+	for (const tier of errorMessageTiers) {
+		if (errorCount >= tier.threshold) {
+			message = tier.message;
+		}
+	}
+	return message;
 }
 
 export function getRandomSuccessMessage(): string {

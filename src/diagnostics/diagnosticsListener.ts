@@ -1,32 +1,28 @@
 import * as vscode from 'vscode';
-import { setPetState } from '../pet/petController';
+import { setPetState, setErrorState } from '../pet/petController';
+
+export function getWorkspaceErrorCount(): number {
+	const allDiagnostics = vscode.languages.getDiagnostics();
+	let count = 0;
+	for (const [_, diags] of allDiagnostics) {
+		count += diags.filter(d => d.severity === vscode.DiagnosticSeverity.Error).length;
+	}
+	return count;
+}
 
 export function hasWorkspaceErrors(): boolean {
-	const allDiagnostics = vscode.languages.getDiagnostics();
-	return allDiagnostics.some(([_, diags]) =>
-		diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
-	);
+	return getWorkspaceErrorCount() > 0;
 }
 
 export function setupDiagnosticsListener(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
 		vscode.languages.onDidChangeDiagnostics((e) => {
-			let hasErrors = false;
-			for (const uri of e.uris) {
-				const diagnostics = vscode.languages.getDiagnostics(uri);
-				const errors = diagnostics.filter(d => d.severity === vscode.DiagnosticSeverity.Error);
-				if (errors.length > 0) {
-					hasErrors = true;
-					break;
-				}
-			}
+			const errorCount = getWorkspaceErrorCount();
 
-			if (hasErrors) {
-				setPetState('error');
+			if (errorCount > 0) {
+				setErrorState(errorCount);
 			} else {
-				if (!hasWorkspaceErrors()) {
-					setPetState('idle');
-				}
+				setPetState('idle');
 			}
 		})
 	);
