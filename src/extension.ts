@@ -8,7 +8,7 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 	private _view?: vscode.WebviewView;
 	private _currentState: PetState = 'idle';
 
-	constructor(private readonly _extensionUri: vscode.Uri) {}
+	constructor(private readonly _extensionUri: vscode.Uri) { }
 
 	public resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -28,18 +28,18 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 	public setState(state: PetState, message?: string) {
 		this._currentState = state;
 		if (this._view) {
-			this._view.webview.postMessage({ 
-				type: 'stateChange', 
+			this._view.webview.postMessage({
+				type: 'stateChange',
 				state: state,
-				message: message 
+				message: message
 			});
 		}
 	}
 
 	public showChatBubble(message: string, duration: number = 5000) {
 		if (this._view) {
-			this._view.webview.postMessage({ 
-				type: 'chatBubble', 
+			this._view.webview.postMessage({
+				type: 'chatBubble',
 				message: message,
 				duration: duration
 			});
@@ -426,10 +426,10 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				// Check if there are any errors anywhere in the workspace
 				const allDiagnostics = vscode.languages.getDiagnostics();
-				const anyErrors = allDiagnostics.some(([_, diags]) => 
+				const anyErrors = allDiagnostics.some(([_, diags]) =>
 					diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
 				);
-				
+
 				if (!anyErrors) {
 					petViewProvider.setState('idle');
 				}
@@ -459,46 +459,90 @@ async function setupGitCommitListener(context: vscode.ExtensionContext) {
 		return;
 	}
 
-	if (!gitApi) {
-		return;
-	}
+	if (!gitApi) return;
 
-	const git = gitApi;
-	let lastHeadCommit: string | undefined;
+	// Track last known HEAD per repp from repo.rootUri.toString()
+	const lastHeadByRepo = new Map<string, string | undefined>();
+	// Track timeout handles per repo so we can cancel/replace them
+	const timeoutByRepo = new Map<string, ReturnType<typeof setTimeout>>();
+
+	// helper to set pet back to idle or error after timeout
+	function restorePetStateAfterTimeout(repoId: string) {
+		// Clear any existing timeout for repo (safety)
+		const existing = timeoutByRepo.get(repoId);
+		if (existing) {
+			clearTimeout(existing);
+			timeoutByRepo.delete(repoId);
+		}
+
+		const handle = setTimeout(() => {
+			timeoutByRepo.delete(repoId);
+
+			// If there are any workspace errors, set error; otherwise idle
+			const allDiagnostics = vscode.languages.getDiagnostics();
+			const anyErrors = allDiagnostics.some(([_, diags]) =>
+				diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
+			);
+
+			if (anyErrors) {
+				petViewProvider.setState('error');
+			} else {
+				petViewProvider.setState('idle');
+			}
+		}, 5000); // 5 seconds
+
+		timeoutByRepo.set(repoId, handle);
+	}
 
 	function checkForCommit(repo: any) {
-		const currentHead = repo.state.HEAD?.commit;
-		
-		if (currentHead && lastHeadCommit && currentHead !== lastHeadCommit) {
+		const repoId = repo.rootUri?.toString() ?? repo.path ?? Math.random().toString();
+		const currentHead: string | undefined = repo.state.HEAD?.commit;
+
+		const previousHead = lastHeadByRepo.get(repoId);
+		// If we had previous head and it's changed -> new commit happened
+		if (previousHead && currentHead && previousHead !== currentHead) {
+			// show success briefly
 			petViewProvider.setState('success');
-			
-			setTimeout(() => {
-				const allDiagnostics = vscode.languages.getDiagnostics();
-				const anyErrors = allDiagnostics.some(([_, diags]) => 
-					diags.some(d => d.severity === vscode.DiagnosticSeverity.Error)
-				);
-				
-				if (anyErrors) {
-					petViewProvider.setState('error');
-				} else {
-					petViewProvider.setState('idle');
-				}
-			}, 5000);
+
+			// clear then set a new one
+			restorePetStateAfterTimeout(repoId);
 		}
-		
-		lastHeadCommit = currentHead;
+
+		// always update last known head (even if undefined)
+		lastHeadByRepo.set(repoId, currentHead);
 	}
 
-	// Watch existing repositories
-	for (const repo of git.repositories) {
-		repo.state.onDidChange(() => checkForCommit(repo));
+	// Wire existing repositories
+	const repoDisposables: vscode.Disposable[] = [];
+	for (const repo of gitApi.repositories) {
+		const repoId = repo.rootUri?.toString() ?? repo.path ?? Math.random().toString();
+		lastHeadByRepo.set(repoId, repo.state.HEAD?.commit);
+		// repo.state.onDidChange is an Event, subscribing returns a Disposable
+		const disp = repo.state.onDidChange(() => checkForCommit(repo));
+		repoDisposables.push(disp);
+		context.subscriptions.push(disp);
 	}
 
-	// Watch for new repositories
-	git.onDidOpenRepository((repo: any) => {
-		repo.state.onDidChange(() => checkForCommit(repo));
+	// Listen for newly opened repositories
+	const openRepoDisp = gitApi.onDidOpenRepository((repo: any) => {
+		const repoId = repo.rootUri?.toString() ?? repo.path ?? Math.random().toString();
+		lastHeadByRepo.set(repoId, repo.state.HEAD?.commit);
+		const disp = repo.state.onDidChange(() => checkForCommit(repo));
+		repoDisposables.push(disp);
+		context.subscriptions.push(disp);
 	});
+	context.subscriptions.push(openRepoDisp);
+
+	// Clean up timeouts on deactivate / disposal
+	const cleanupDisposable = new vscode.Disposable(() => {
+		for (const t of timeoutByRepo.values()) {
+			clearTimeout(t);
+		}
+		timeoutByRepo.clear();
+		lastHeadByRepo.clear();
+	});
+	context.subscriptions.push(cleanupDisposable);
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
