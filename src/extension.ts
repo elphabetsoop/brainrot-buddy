@@ -228,9 +228,11 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 
 				// Bounce off edges
 				if (position >= 90) {
+					position = 90;
 					direction = -1;
 					petImage.classList.add('flipped');
 				} else if (position <= 5) {
+					position = 5;
 					direction = 1;
 					petImage.classList.remove('flipped');
 				}
@@ -262,7 +264,7 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 		});
 
 		// Click to make pet jump
-		petImage.addEventListener('click', () => {
+		petImage.addEventListener('click', () => {  
 			petImage.style.transform = petImage.classList.contains('flipped') 
 				? 'scaleX(-1) translateY(-20px)' 
 				: 'translateY(-20px)';
@@ -290,10 +292,12 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 						showChatBubble(message.message);
 					}
 
-					// Pause walking briefly on state change
-					if (message.state === 'error' || message.state === 'success') {
+					// Stop or pause walking on state change
+					if (message.state === 'error') {
 						isWalking = false;
-						setTimeout(() => { isWalking = true; }, 3000);
+					} else if (message.state === 'idle') {
+						isWalking = true;
+						chatBubble.classList.remove('visible');
 					}
 					break;
 
