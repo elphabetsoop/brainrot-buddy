@@ -42,9 +42,6 @@ export class SuccessPopupPanel {
 		// Set the webview's initial html content
 		this._update();
 
-		// Attempt to fetch a meme and update
-		this._fetchMeme();
-
 		// Listen for when the panel is disposed
 		this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
@@ -76,35 +73,15 @@ export class SuccessPopupPanel {
 		}
 	}
 
-	private _update(memeUrl?: string) {
-		this._panel.webview.html = this._getHtmlForWebview(memeUrl);
+	private _update() {
+		this._panel.webview.html = this._getHtmlForWebview();
 	}
 
-	private async _fetchMeme() {
-		try {
-			const response = await fetch('https://memesapi.vercel.app/give');
-			if (response.ok) {
-				const data = await response.json() as { memes: { url: string }[] };
-				if (data.memes && data.memes.length > 0) {
-					// Check if panel is still active before updating
-					if (SuccessPopupPanel.currentPanel === this) {
-						this._update(data.memes[0].url);
-					}
-				}
-			}
-		} catch (error) {
-			console.error('Failed to fetch meme:', error);
-			// Fallback is already shown
-		}
-	}
-
-	private _getHtmlForWebview(memeUrl?: string): string {
-		const snorlaxPath = this._panel.webview.asWebviewUri(
-			vscode.Uri.joinPath(this._extensionUri, 'media', 'success', 'snorlax.png')
-		);
-
-		const imgSrc = memeUrl || snorlaxPath;
-
+	private _getHtmlForWebview(): string {
+		// List of success images (excluding bibble.png)
+		const successImages = ['snorlax.png', 'wow.jpg', 'snorlax.png'];
+		const randomImage = successImages[Math.floor(Math.random() * successImages.length)];
+		const successImagePath = this._panel.webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'success', randomImage));
 		return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -169,7 +146,7 @@ export class SuccessPopupPanel {
 </head>
 <body>
 	<div class="container">
-		<img src="${imgSrc}" alt="Success" class="image">
+		<img src="${successImagePath}" alt="Success" class="image">
 	</div>
 
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
