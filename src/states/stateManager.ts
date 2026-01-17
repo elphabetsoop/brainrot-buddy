@@ -14,7 +14,8 @@ export const successMessages = [
 export const actions: Record<string, string> = {
 	idle: "bingchilling",
 	error: "crashing out",
-	success: "says FIREEEE"
+	success: "says FIREEEE",
+	lengthyWarning: "concerned*"
 };
 
 export function getErrorMessageForCount(errorCount: number): string {

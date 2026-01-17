@@ -41,6 +41,16 @@
           "name": "Brainrot Buddy"
         }
       ]
+    },
+    "configuration": {
+      "properties": {
+        "brainrot-buddy.longFunctionThreshold": {
+          "type": "number",
+          "default": 20,
+          "minimum": 1,
+          "description": "Number of lines after which a function is considered too long."
+        }
+      }
     }
   },
   "scripts": {

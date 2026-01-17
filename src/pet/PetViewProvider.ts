@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { actions, errorMessageTiers, successMessages, getErrorMessageForCount } from '../states/stateManager';
 
-export type PetState = 'idle' | 'error' | 'success';
+export type PetState = 'idle' | 'error' | 'success' | 'lengthyWarning';
 
 export class PetViewProvider implements vscode.WebviewViewProvider {
 	public static readonly viewType = 'brainrotBuddy.petView';
@@ -69,6 +69,7 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		const idlePath = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'idle', 'bibble.png'));
 		const errorPath = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'error', 'bibble.png'));
 		const successPath = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'success', 'bibble.png'));
+		const lengthyWarningPath = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'lengthyWarning', 'bibble.png'));
 
 		// Serialize meme data for the webview
 		const errorMessageTiersJson = JSON.stringify(errorMessageTiers);
@@ -252,7 +253,8 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 		const images = {
 			idle: '${idlePath}',
 			error: '${errorPath}',
-			success: '${successPath}'
+			success: '${successPath}',
+			lengthyWarning: '${lengthyWarningPath}'
 		};
 
 		const errorMessageTiers = ${errorMessageTiersJson};
@@ -426,7 +428,14 @@ export class PetViewProvider implements vscode.WebviewViewProvider {
 						const randomSuccess = successMessages[Math.floor(Math.random() * successMessages.length)];
 						showChatBubble(randomSuccess);
 						setTimeout(() => { isWalking = true; }, 3000);
-					} else {
+					} else if (message.state === 'lengthyWarning'){
+						isError = false;
+						isWalking = false;
+						moveToCenter();
+						setTimeout(() => { isWalking = true; }, 3000);
+						resetPetStyle();
+					}
+					 else {
 						isError = false;
 						isWalking = true;
 						resetPetStyle();
