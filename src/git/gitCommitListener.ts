@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { setPetState } from '../pet/petController';
-import { hasWorkspaceErrors } from '../diagnostics/diagnosticsListener';
+import { setPetState, setErrorState } from '../pet/petController';
+import { getWorkspaceErrorCount } from '../diagnostics/diagnosticsListener';
 
 export async function setupGitCommitListener(context: vscode.ExtensionContext): Promise<void> {
 	// Wait for git extension to be available
@@ -42,8 +42,9 @@ export async function setupGitCommitListener(context: vscode.ExtensionContext): 
 			timeoutByRepo.delete(repoId);
 
 			// If there are any workspace errors, set error; otherwise idle
-			if (hasWorkspaceErrors()) {
-				setPetState('error');
+			const errorCount = getWorkspaceErrorCount();
+			if (errorCount > 0) {
+				setErrorState(errorCount);
 			} else {
 				setPetState('idle');
 			}

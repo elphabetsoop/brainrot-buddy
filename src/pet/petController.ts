@@ -51,6 +51,10 @@ export function setPetState(state: PetState, message?: string): void {
 	}
 }
 
+export function setErrorState(errorCount: number): void {
+	petViewProvider?.setErrorState(errorCount);
+}
+
 export function showChatBubble(message: string, duration?: number): void {
 	petViewProvider?.showChatBubble(message, duration);
 }
