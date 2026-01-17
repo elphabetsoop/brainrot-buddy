@@ -182,24 +182,18 @@ class PetViewProvider implements vscode.WebviewViewProvider {
 			box-shadow: 0 0 6px rgba(33, 150, 243, 0.5);
 		}
 
-		@keyframes bounce {
-			0%, 100% { transform: translateY(0); }
-			50% { transform: translateY(-3px); }
-		}
-
 		.walking .pet {
-			animation: bounce 0.3s ease-in-out infinite;
+			animation:  0.3s ease-in-out infinite;
 		}
 
 		.walking .pet.flipped {
-			animation: bounce 0.3s ease-in-out infinite;
+			animation:  0.3s ease-in-out infinite;
 		}
 	</style>
 </head>
 <body>
 	<div class="pet-wrapper" id="petWrapper">
 		<div class="chat-bubble" id="chatBubble"></div>
-		<div class="pet-name">Bibble</div>
 		<img src="${idlePath}" alt="Bibble" class="pet" id="petImage">
 		<div class="state-dot idle" id="stateDot"></div>
 	</div>
@@ -378,7 +372,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			if (hasErrors) {
-				petViewProvider.setState('error', 'Uh oh! Errors! 😰');
+				petViewProvider.setState('error', 'knn gt error wtf');
 			} else {
 				// Check if there are any errors anywhere in the workspace
 				const allDiagnostics = vscode.languages.getDiagnostics();
