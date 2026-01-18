@@ -86,13 +86,17 @@ We learnt how to create a VSCode extension, experimenting with VSCode extension 
 ## Screenshots
 
 1. Bibble bingchillings with you (bro walks around)
+
     ![idle](./docs/screenshots/idle.png)
 
 2. Bibble can be rather savage :(
+
     ![error](./docs/screenshots/errors.gif)
 
 3. Bibble serving you dopamine hits but preventing excessive doomscrolling
+
     ![pomodoro](./docs/screenshots/meme.gif)
 
 4. Bibble celebrating your success with you!
+
     ![success](./docs/screenshots/commit.gif)
