@@ -2,7 +2,7 @@
 
 # brainrot buddy
 
-<img src="/media/success/bibble.png" alt="bibble" width="100"/>
+<img src="https://raw.githubusercontent.com/elphabetsoop/brainrot-buddy/main/media/success/bibble.png" alt="bibble" width="100"/>
 
 </div>
 
@@ -91,16 +91,16 @@ We learnt how to create a VSCode extension, experimenting with VSCode extension 
 
 1. Bibble bingchillings with you (bro walks around)
 
-    ![idle](./docs/screenshots/idle.png)
+    ![idle](https://raw.githubusercontent.com/elphabetsoop/brainrot-buddy/main/docs/screenshots/idle.png)
 
 2. Bibble can be rather savage :(
 
-    ![error](./docs/screenshots/errors.gif)
+    ![error](https://raw.githubusercontent.com/elphabetsoop/brainrot-buddy/main/docs/screenshots/errors.gif)
 
 3. Bibble serving you dopamine hits but preventing excessive doomscrolling
 
-    ![pomodoro](./docs/screenshots/meme.gif)
+    ![pomodoro](https://raw.githubusercontent.com/elphabetsoop/brainrot-buddy/main/docs/screenshots/meme.gif)
 
 4. Bibble celebrating your success with you!
 
-    ![success](./docs/screenshots/commit.gif)
+    ![success](https://raw.githubusercontent.com/elphabetsoop/brainrot-buddy/main/docs/screenshots/commit.gif)
