@@ -86,10 +86,10 @@ We learnt how to create a VSCode extension, experimenting with VSCode extension 
 ## Screenshots
 
 1. Bibble can be rather savage :(
-    ![error](./docs/screenshots/error.png)
+    ![error](./docs/screenshots/errors.gif)
 
-2. Bibble serving you dopamine hits
-    ![doomscroll](./docs/screenshots/doomscroll.png)
+2. Bibble serving you dopamine hits but preventing excessive doomscrolling
+    ![pomodoro](./docs/screenshots/meme.gif)
 
-3. Bibble forcing you to LOCK IN
-    ![pomodoro](./docs/screenshots/pomodoro.png)
+3. Bibble celebrating your success with you!
+    ![success](./docs/screenshots/commit.gif)
