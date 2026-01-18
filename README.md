@@ -1,44 +1,106 @@
-# Brainrot Buddy 🧠🧟
+<div align='center'>
 
-**Gamifying Code Quality with "Brainrot" Culture**
+# brainrot buddy
 
-Brainrot Buddy transforms your coding frustrations into a chaotic, gamified experience. It replaces sterile IDE warnings with personality-driven feedback, using "brainrot" humor (slang, memes, chaotic visuals) to keep you engaged (and humble).
+<img src="/media/success/bibble.png" alt="bibble" width="100"/>
 
-## Features
+</div>
 
-### 1. Reactive "Fried" Visuals 🍟
-The extension visualizes your code health through **Bibble**, your virtual pet.
-*   **Idle:** Bibble is "bingchilling".
-*   **Errors:** As errors increase, the interface applies a "deep fried" visual filter (saturation + scaling).
-*   **5+ Errors:** "BRO WTF R U DOING" + Maximum Saturation (Bibble turns red/distorted).
+<p align="center">
+    your friendly, encouraging and brainrotted coding companion
+</p>
 
-### 2. "Roast-Based" Static Analysis 🔥
-Generic warnings are boring. Brainrot Buddy proactively "roasts" you for bad practices.
-*   **Long Functions (>20 lines):**
-    *   "Yo 'activeEditor' is 50 lines?? Touch grass fr"
-    *   "did ChatGPT write this?"
-    *   "Seek help fr"
+<br>
 
-### 3. "Lock In" Mode 🍅
-Controlled procrastination to keep you productive.
-*   **Meme Rewards:** Click Bibble to fetch memes from `r/programmerhumor`.
-*   **The Limit:** After 10 memes, you are **LOCKED IN**.
-*   **Lockdown:** Memes are disabled for 25 minutes (Pomodoro style), forcing you to focus.
 
-### 4. Positive Reinforcement 🚀
-*   **Hype Commits:** "FIRE COMMIT", "YES LAHHHH" speech bubbles when you commit code.
-*   **Victory Screen:** Confetti explosions and Snorlax memes for successful actions.
+## Inspiration
 
-## Installation
+Inspired by vscode-pets, we wanted a VSCode pet that was #relatable, like [Bibble](https://www.google.com/search?q=bibble). At the same time, we wanted a coding companion that was **encouraging**, **entertaining** and **engaging**, which led us to develop **brainrot buddy**.
 
-1.  Install via VS Code Marketplace.
-2.  Open the "Brainrot Buddy" view in your Activity Bar.
-3.  Start coding (and try not to crash out).
+## What it does
 
-## Requirements
+1. **brainrot buddy** is a VSCode extension that loads a pet (Bibble). Bibble reacts according to the user's workspace state, such as:
+    - Errors
+    - Successful commits
+    - Bad coding practices
+    - Regular scheduled programming
+2. An **encouraging animation** is also generated upon successful commits. 
+3. A **Pomodoro Brainrot Doomscroll panel**, which allows the user to doomscroll during Pomodoro breaks, reducing the need to navigate to other devices/tabs. For peak efficiency (bumness).
 
-*   VS Code ^1.95.0
-*   A sense of humor (and tolerance for Gen Z slang).
+## How we built it
+- VSCode Extension API
+    - Handles activation, commands, events, diagnostics, and Git hooks
+    - Enables integration directly into the editor workflow
+- Node.js
+    - Powers the extension backend and API interactions
+- TypeScript
+    - Primary development language
+    - Improves reliability when handling editor events with type specification
 
----
-**Enjoy the brainrot!**
+## Challenges we ran into
+- With no prior experience with building VSCode extensions and its API, we spent a fair bit of time scouring the documentation for an API that suited our needs
+- eepys
+
+## Accomplishments that we're proud of
+
+- **Our first VSCode extension**: It's fun, entertaining, and doesn't break
+- **Staying up till 4am**: No easy feat, pulled through sheer willpower and caffeine
+
+## What we learned
+
+We learnt how to create a VSCode extension, experimenting with VSCode extension APIs, WebViews and WebPanels. Most importantly, we learnt how to bring silly ideas to life.
+
+## What's next for brainrot buddy
+
+- Integration with Instagram Reels and Tiktok, for the peak doomscroll experience
+- An API to update success animations, because staying trendy is important
+
+## Installation & Usage
+
+1. Ensure the latest version of [Node.js](https://nodejs.org/en/download/) is installed on your machine.
+
+2. Install Yeoman and the VS Code Extension Generator globally using npm:
+
+    ```bash
+    npm install --global yo generator-code
+    ```
+
+3. Clone the repository
+
+    ```bash
+    git clone https://www.github.com/elphabetsoop/brainrot-buddy
+    ```
+
+4. Open the project directory in VS Code
+
+    ```bash
+    cd brainrot-buddy
+    code .
+    ```
+
+5. Install the dependencies
+
+    ```bash
+    npm install
+    ```
+
+6. Press `F5` to open a new VS Code window with the extension loaded. You should see a heart icon in the activity bar on the left. Drag it to your desired location.
+
+
+## Screenshots
+
+1. Bibble bingchillings with you (bro walks around)
+
+    ![idle](./docs/screenshots/idle.png)
+
+2. Bibble can be rather savage :(
+
+    ![error](./docs/screenshots/errors.gif)
+
+3. Bibble serving you dopamine hits but preventing excessive doomscrolling
+
+    ![pomodoro](./docs/screenshots/meme.gif)
+
+4. Bibble celebrating your success with you!
+
+    ![success](./docs/screenshots/commit.gif)
