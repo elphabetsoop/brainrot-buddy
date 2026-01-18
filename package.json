@@ -1,7 +1,12 @@
 {
   "name": "brainrot-buddy",
   "displayName": "brainrot-buddy",
-  "description": "",
+  "description": "Your brainrot coding companion.",
+  "publisher": "brainrot-labs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brainrot-labs/brainrot-buddy"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.105.0"
