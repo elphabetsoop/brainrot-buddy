@@ -3,6 +3,7 @@
   "displayName": "brainrot-buddy",
   "description": "Your brainrot coding companion.",
   "publisher": "brainrot-labs",
+  "icon": "media/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/brainrot-labs/brainrot-buddy"
