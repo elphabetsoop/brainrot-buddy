@@ -12,37 +12,6 @@
 
 <br>
 
-## Installation & Usage
-
-1. Ensure the latest version of [Node.js](https://nodejs.org/en/download/) is installed on your machine.
-
-2. Install Yeoman and the VS Code Extension Generator globally using npm:
-
-    ```bash
-    npm install --global yo generator-code
-    ```
-
-3. Clone the repository
-
-    ```bash
-    git clone https://www.github.com/elphabetsoop/brainrot-buddy
-    ```
-
-4. Open the project directory in VS Code
-
-    ```bash
-    cd brainrot-buddy
-    code .
-    ```
-
-5. Install the dependencies
-
-    ```bash
-    npm install
-    ```
-
-6. Press `F5` to open a new VS Code window with the extension loaded. You should see a heart icon in the activity bar on the left. Drag it to your desired location.
-
 
 ## Inspiration
 
@@ -82,6 +51,38 @@ We learnt how to create a VSCode extension, experimenting with VSCode extension 
 
 - Integration with Instagram Reels and Tiktok, for the peak doomscroll experience
 - An API to update success animations, because staying trendy is important
+
+## Installation & Usage
+
+1. Ensure the latest version of [Node.js](https://nodejs.org/en/download/) is installed on your machine.
+
+2. Install Yeoman and the VS Code Extension Generator globally using npm:
+
+    ```bash
+    npm install --global yo generator-code
+    ```
+
+3. Clone the repository
+
+    ```bash
+    git clone https://www.github.com/elphabetsoop/brainrot-buddy
+    ```
+
+4. Open the project directory in VS Code
+
+    ```bash
+    cd brainrot-buddy
+    code .
+    ```
+
+5. Install the dependencies
+
+    ```bash
+    npm install
+    ```
+
+6. Press `F5` to open a new VS Code window with the extension loaded. You should see a heart icon in the activity bar on the left. Drag it to your desired location.
+
 
 ## Screenshots
 
