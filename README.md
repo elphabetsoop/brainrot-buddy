@@ -28,13 +28,16 @@ Inspired by vscode-pets, we wanted a VSCode pet that was #relatable, like [Bibbl
 3. A **Pomodoro Brainrot Doomscroll panel**, which allows the user to doomscroll during Pomodoro breaks, reducing the need to navigate to other devices/tabs. For peak efficiency (bumness).
 
 ## How we built it
-
-- VSCode
+- VSCode Extension API
+    - Handles activation, commands, events, diagnostics, and Git hooks
+    - Enables integration directly into the editor workflow
 - Node.js
+    - Powers the extension backend and API interactions
 - TypeScript
+    - Primary development language
+    - Improves reliability when handling editor events with type specification
 
 ## Challenges we ran into
-
 - With no prior experience with building VSCode extensions and its API, we spent a fair bit of time scouring the documentation for an API that suited our needs
 - eepys
 
